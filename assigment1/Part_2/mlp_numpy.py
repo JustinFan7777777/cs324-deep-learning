@@ -16,6 +16,31 @@ class MLP(object):
         """
         # Hint: You can use a loop to create the necessary number of layers and add them to a list.
         # Remember to initialize the weights and biases in each layer.
+
+        if n_inputs <= 0 or n_classes <= 0:
+            raise ValueError("n_inputs and n_classes must be positive")
+
+        if any(units <= 0 for units in n_hidden):
+            raise ValueError("hidden-layer sizes must be positive")
+
+        self.layers = []
+
+        # Create the dimensions of each layer in the network
+        # The first layer has n_inputs, the hidden layers have sizes specified in n_hidden, and the output layer has n_classes.
+        dimensions = [n_inputs] + n_hidden + [n_classes]
+
+        # hidden layers: Linear + ReLU
+        for i in range(len(dimensions) - 2):
+            self.layers.append(
+                Linear(dimensions[i], dimensions[i + 1])
+            )
+            self.layers.append(ReLU())
+
+        # output layer: Linear + Softmax
+        self.layers.append(
+            Linear(dimensions[-2], dimensions[-1])
+        )
+        self.layers.append(SoftMax())
         
     def forward(self, x):
         """
@@ -37,6 +62,9 @@ class MLP(object):
         # TODO: Implement the forward pass through each layer.
         # Hint: For each layer in your network, you will need to update 'out' to be the layer's output.
         
+        # Iterate through each layer in the MLP and apply the forward method
+        for layer in self.layers:
+            out = layer.forward(out)
         return out
 
     def backward(self, dout):
@@ -53,4 +81,8 @@ class MLP(object):
         # TODO: Implement the backward pass through each layer.
         # Hint: You will need to update 'dout' to be the gradient of the loss with respect to the input of each layer.
         
+        # Iterate through each layer in reverse order and apply the backward method
+        for layer in reversed(self.layers):
+            dout = layer.backward(dout)
+
         # No need to return anything since the gradients are stored in the layers.

@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+*.zip
+*.pdf
+archive/
+references/
+report_revision/final_check.json
+report_revision/build/
+report_revision/*.aux
+report_revision/*.log
+report_revision/*.out

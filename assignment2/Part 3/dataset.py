@@ -1,35 +1,64 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+"""Generate random digit palindromes using the supplied dataset protocol."""
 
 import math
 import sys
 
 import numpy as np
-import torch.utils.data as data
+from torch.utils.data import Dataset
 
 
-class PalindromeDataset(data.Dataset):
+class PalindromeDataset(Dataset):
+    """Generate a fresh palindrome each time an item is requested."""
 
     def __init__(self, seq_length):
+        """
+        Args:
+            seq_length: Total palindrome length T, including the target.
+        """
+        if seq_length < 2:
+            raise ValueError(
+                "A palindrome must contain at least two digits."
+            )
+
         self.seq_length = seq_length
 
     def __len__(self):
-        # Number of possible palindroms can be very big:
-        # (10**(seq_length/2) or (10**((seq_length+1)/2)
-        # Therefore we return the maximum integer value
+        # Preserve the supplied effectively unbounded sampling interface.
+        #
+        # This value is not the number of distinct possible palindromes.
+        # Training must stop using an explicit optimizer-update budget.
         return sys.maxsize
 
     def __getitem__(self, idx):
-        # Keep last digit as target label. Note: one-hot encoding for inputs is
-        # more suitable for training, but this also works.
+        # idx is intentionally unused: each call generates a fresh sample.
         full_palindrome = self.generate_palindrome()
-        # Split palindrome into inputs (N-1 digits) and target (1 digit)
-        return full_palindrome[0:-1], int(full_palindrome[-1])
+
+        # Inputs contain the first T - 1 digits.
+        # The target is the final digit, represented as an integer class.
+        return full_palindrome[:-1], int(full_palindrome[-1])
 
     def generate_palindrome(self):
-        # Generates a single, random palindrome number of 'length' digits.
-        left = [np.random.randint(0, 10) for _ in range(math.ceil(self.seq_length/2))]
-        left = np.asarray(left, dtype=np.float32)
-        right = np.flip(left, 0) if self.seq_length % 2 == 0 else np.flip(left[:-1], 0)
+        """
+        Generate an even- or odd-length digit palindrome.
+
+        Examples:
+            T=4: left [3, 8]    -> [3, 8, 8, 3]
+            T=5: left [3, 8, 2] -> [3, 8, 2, 8, 3]
+        """
+        # An odd-length palindrome includes its center in the left half.
+        left = np.asarray(
+            [
+                np.random.randint(0, 10)
+                for _ in range(math.ceil(self.seq_length / 2))
+            ],
+            dtype=np.float32,
+        )
+
+        if self.seq_length % 2 == 0:
+            # Even length: mirror the entire left half.
+            right = np.flip(left, axis=0)
+        else:
+            # Odd length: keep the center digit only once.
+            right = np.flip(left[:-1], axis=0)
+
         return np.concatenate((left, right))

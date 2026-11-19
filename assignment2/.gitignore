@@ -1,0 +1,27 @@
+# Private course material and the immutable Blackboard submission
+*.pdf
+*.zip
+*.tex
+/ASSIGNMENT_REQUIREMENTS.md
+/FINAL_REVIEW.md
+/SUBMISSION_STATUS.md
+/package_submission.py
+/report/
+
+# Local experiment payloads; notebook outputs and RESULTS.md summarize results
+results/
+data/
+*.pt
+*.pth
+*.ckpt
+*.npz
+*.log
+
+# Environments, caches and credentials
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+*.py[cod]
+.env
+.env.*
